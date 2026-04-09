@@ -17,72 +17,7 @@ const COLORS = {
   border: "#2d3148",
 };
 
-const initialProjects = [
-  {
-    id: 1,
-    title: "Climate Change Research App",
-    description: "Build a web app visualizing global climate data and trends.",
-    deadline: "2025-03-20",
-    status: "In Progress",
-    milestones: [
-      { id: 1, title: "Project Proposal", done: true },
-      { id: 2, title: "Data Collection", done: true },
-      { id: 3, title: "UI Design", done: false },
-      { id: 4, title: "Final Submission", done: false },
-    ],
-    tasks: [
-      { id: 1, title: "Set up React project", assignee: "Alice", status: "Done", priority: "High" },
-      { id: 2, title: "Fetch climate API data", assignee: "Bob", status: "In Progress", priority: "High" },
-      { id: 3, title: "Design dashboard layout", assignee: "Carol", status: "Todo", priority: "Medium" },
-      { id: 4, title: "Write unit tests", assignee: "Alice", status: "Todo", priority: "Low" },
-    ],
-    members: ["Alice", "Bob", "Carol"],
-    submitted: false,
-    submission: null,
-  },
-  {
-    id: 2,
-    title: "E-Commerce Mobile UI",
-    description: "Design and prototype a mobile shopping experience with cart and checkout.",
-    deadline: "2025-04-05",
-    status: "Planning",
-    milestones: [
-      { id: 1, title: "Wireframes", done: true },
-      { id: 2, title: "Prototype", done: false },
-      { id: 3, title: "User Testing", done: false },
-      { id: 4, title: "Final Submission", done: false },
-    ],
-    tasks: [
-      { id: 1, title: "Create wireframes", assignee: "David", status: "Done", priority: "High" },
-      { id: 2, title: "Build prototype screens", assignee: "Eve", status: "In Progress", priority: "High" },
-      { id: 3, title: "User research survey", assignee: "David", status: "Todo", priority: "Medium" },
-    ],
-    members: ["David", "Eve"],
-    submitted: false,
-    submission: null,
-  },
-  {
-    id: 3,
-    title: "AI Chatbot Assistant",
-    description: "Develop a simple chatbot that answers FAQs using keyword matching.",
-    deadline: "2025-02-28",
-    status: "Submitted",
-    milestones: [
-      { id: 1, title: "Requirements Analysis", done: true },
-      { id: 2, title: "NLP Logic", done: true },
-      { id: 3, title: "Integration", done: true },
-      { id: 4, title: "Final Submission", done: true },
-    ],
-    tasks: [
-      { id: 1, title: "Research NLP basics", assignee: "Frank", status: "Done", priority: "High" },
-      { id: 2, title: "Build keyword engine", assignee: "Grace", status: "Done", priority: "High" },
-      { id: 3, title: "Create UI", assignee: "Frank", status: "Done", priority: "Medium" },
-    ],
-    members: ["Frank", "Grace"],
-    submitted: true,
-    submission: { file: "chatbot_final.zip", note: "All features implemented. Tested on Chrome and Firefox.", grade: null },
-  },
-];
+const initialProjects = [];
 
 const statusColor = (status) => {
   if (status === "Done" || status === "Submitted") return { bg: COLORS.greenSoft, text: COLORS.green };
@@ -759,27 +694,66 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
-  const updateProject = (updated) => {
-    setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
-    setSelectedProject(updated);
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/projects");
+      const data = await res.json();
+      setProjects(data);
+    } catch (e) {
+      console.error("Failed to fetch projects", e);
+    }
   };
 
-  const createProject = () => {
+  useEffect(() => {
+    if (role) fetchProjects();
+  }, [role]);
+
+  const updateProject = async (updated) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/projects/${updated.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProjects(prev => prev.map(p => p.id === updated.id ? data : p));
+        setSelectedProject(data);
+      }
+    } catch (e) {
+      console.error("Failed to update project", e);
+    }
+  };
+
+  const createProject = async () => {
     if (!newProject.title) return;
     const p = {
-      id: Date.now(), ...newProject,
+      ...newProject,
       members: newProject.members.split(",").map(s => s.trim()).filter(Boolean),
       status: "Planning",
       milestones: [
-        { id: 1, title: "Project Kickoff", done: false },
-        { id: 2, title: "Mid-Point Review", done: false },
-        { id: 3, title: "Final Submission", done: false },
+        { title: "Project Kickoff", done: false },
+        { title: "Mid-Point Review", done: false },
+        { title: "Final Submission", done: false },
       ],
       tasks: [], submitted: false, submission: null,
     };
-    setProjects(prev => [...prev, p]);
-    setShowNewProject(false);
-    setNewProject({ title: "", description: "", deadline: "", members: "" });
+    
+    try {
+      const res = await fetch("http://localhost:8080/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(p),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProjects(prev => [...prev, data]);
+        setShowNewProject(false);
+        setNewProject({ title: "", description: "", deadline: "", members: "" });
+      }
+    } catch (e) {
+      console.error("Failed to create project", e);
+    }
   };
 
   const filtered = projects.filter(p => {
