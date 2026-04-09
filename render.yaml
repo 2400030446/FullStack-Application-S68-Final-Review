@@ -1,10 +1,10 @@
-services:
-  # Database
-  - type: psql
-    name: render-postgres
+databases:
+  - name: render-postgres
+    databaseName: lms_db
+    user: lms_user
     plan: free
-    postgresMajorVersion: 15
 
+services:
   # Spring Boot Backend
   - type: web
     name: backend-service
