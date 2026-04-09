@@ -686,6 +686,7 @@ function LoginPage({ onLogin }) {
 
 // ===== MAIN APP =====
 export default function App() {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
   const [role, setRole] = useState(null);
   const [projects, setProjects] = useState(initialProjects);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -696,7 +697,7 @@ export default function App() {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/projects");
+      const res = await fetch(`${API_URL}/api/projects`);
       const data = await res.json();
       setProjects(data);
     } catch (e) {
@@ -710,7 +711,7 @@ export default function App() {
 
   const updateProject = async (updated) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/projects/${updated.id}`, {
+      const res = await fetch(`${API_URL}/api/projects/${updated.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updated),
@@ -740,7 +741,7 @@ export default function App() {
     };
     
     try {
-      const res = await fetch("http://localhost:8080/api/projects", {
+      const res = await fetch(`${API_URL}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(p),
