@@ -16,14 +16,6 @@ services:
         fromDatabase:
           name: render-postgres
           property: connectionString
-      - key: DB_USERNAME
-        fromDatabase:
-          name: render-postgres
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: render-postgres
-          property: password
 
   # React Vite Frontend
   - type: web
