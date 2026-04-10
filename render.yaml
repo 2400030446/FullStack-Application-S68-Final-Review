@@ -18,10 +18,10 @@ services:
           property: connectionString
 
   # React Vite Frontend
-  - type: web
+  - type: static
     name: frontend-site
-    env: static
-    plan: free
+    
+
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
